@@ -1,30 +1,36 @@
-# PawPal+ (Module 2 Project)
+# PawPal+ Smart Pet Care Scheduler
 
-You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+PawPal+ is a Python and Streamlit app that helps a busy pet owner organize daily care routines across multiple pets. It uses object-oriented programming to model owners, pets, tasks, and a scheduler that can sort, filter, detect conflicts, and handle recurring care tasks.
 
-## Scenario
+## Features
 
-A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
+- Add an owner and multiple pets.
+- Add pet care tasks with a description, due time, duration, priority, frequency, date, and completion status.
+- View a daily schedule sorted by time across all pets.
+- Filter tasks by pet, completion status, or priority.
+- Detect exact-time conflicts across pets and show readable warnings.
+- Mark recurring tasks complete and automatically create the next daily or weekly occurrence.
+- Run a CLI demo through `main.py` before using the Streamlit UI.
+- Verify behavior with a pytest suite.
 
-- Track pet care tasks (walks, feeding, meds, enrichment, grooming, etc.)
-- Consider constraints (time available, priority, owner preferences)
-- Produce a daily plan and explain why it chose that plan
+## System Design
 
-Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
+The core design uses four required classes:
 
-## What you will build
+| Class | Responsibility |
+|------|----------------|
+| `Owner` | Stores the owner's name and manages a list of pets. |
+| `Pet` | Stores pet information and manages that pet's tasks. |
+| `Task` | Represents one care task with time, date, duration, priority, frequency, and completion status. |
+| `Scheduler` | Organizes tasks across all pets and provides sorting, filtering, conflict detection, recurrence, and plan-building logic. |
 
-Your final app should:
+The final UML diagram is saved as Mermaid source in:
 
-- Let a user enter basic owner + pet info
-- Let a user add/edit tasks (duration + priority at minimum)
-- Generate a daily schedule/plan based on constraints and priorities
-- Display the plan clearly (and ideally explain the reasoning)
-- Include tests for the most important scheduling behaviors
+```text
+diagrams/uml_final.mmd
+```
 
-## Getting started
-
-### Setup
+## Setup
 
 ```bash
 python -m venv .venv
@@ -32,63 +38,94 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Suggested workflow
-
-1. Read the scenario carefully and identify requirements and edge cases.
-2. Draft a UML diagram (classes, attributes, methods, relationships).
-3. Convert UML into Python class stubs (no logic yet).
-4. Implement scheduling logic in small increments.
-5. Add tests to verify key behaviors.
-6. Connect your logic to the Streamlit UI in `app.py`.
-7. Refine UML so it matches what you actually built.
-
-## 🖥️ Sample Output
-
-Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
-
-```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
-```
-
-## 🧪 Testing PawPal+
+## Run the CLI Demo
 
 ```bash
-# Run the full test suite:
-pytest
-
-# Run with coverage:
-pytest --cov
+python main.py
 ```
 
-Sample test output:
+## Sample CLI Output
 
+```text
+Today's Schedule for Jordan
+================================
+Mochi: 07:30 — Breakfast feeding (10 min) [priority: high, open]
+Biscuit: 08:00 — Morning walk (30 min) [priority: high, open]
+Mochi: 08:00 — Medication (5 min) [priority: high, open]
+Biscuit: 17:30 — Grooming brush (15 min) [priority: low, open]
+
+High Priority Tasks
+================================
+Biscuit: 08:00 — Morning walk (30 min) [priority: high, open]
+Mochi: 07:30 — Breakfast feeding (10 min) [priority: high, open]
+Mochi: 08:00 — Medication (5 min) [priority: high, open]
+
+Conflict Warnings
+================================
+WARNING: Conflict at 08:00 on 2026-07-08: Biscuit's Morning walk and Mochi's Medication.
+
+After completing Biscuit's daily Morning walk:
+Biscuit: 08:00 — Morning walk (30 min) [priority: high, done] due 2026-07-08
+Biscuit: 17:30 — Grooming brush (15 min) [priority: low, open] due 2026-07-08
+Biscuit: 08:00 — Morning walk (30 min) [priority: high, open] due 2026-07-09
 ```
-# Paste your pytest output here
+
+## Run the Streamlit App
+
+```bash
+streamlit run app.py
 ```
 
-## 📐 Smarter Scheduling
+The app lets the user add pets, schedule tasks, view a sorted task table, see conflict warnings, and view high-priority open tasks.
 
-> Fill in once you've implemented scheduling logic.
+## Smarter Scheduling
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | `Scheduler.sort_by_time()` | Sorts tasks by due date and `HH:MM` time across all pets. |
+| Priority scheduling | `Scheduler.sort_by_priority_then_time()` | Sorts high-priority tasks before medium and low tasks, then sorts by time. |
+| Filtering | `Scheduler.filter_tasks()` | Filters by pet name, completion status, and/or priority. |
+| Conflict handling | `Scheduler.detect_conflicts()` | Returns warning strings when two tasks share the same date and exact time. |
+| Recurring tasks | `Task.next_occurrence()` and `Scheduler.mark_task_complete()` | Daily tasks recreate for the next day; weekly tasks recreate seven days later. |
+| Daily plan text | `Scheduler.build_daily_plan()` | Produces readable schedule lines for a selected date. |
 
-## 📸 Demo Walkthrough
+## Testing PawPal+
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+Run the full test suite:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+```bash
+python -m pytest
+```
 
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
+The tests cover task completion, adding tasks to pets, chronological sorting across pets, daily recurrence, and conflict detection.
+
+Sample passing output:
+
+```text
+.....                                                                    [100%]
+5 passed in 0.13s
+```
+
+Confidence level: ⭐⭐⭐⭐⭐ / 5. The scheduler is reliable for the current scope because the main object interactions and scheduling algorithms are verified with automated tests.
+
+## Demo Walkthrough
+
+1. The user starts in the Streamlit app and enters an owner name.
+2. The user adds one or more pets with name, species, and age.
+3. The user creates care tasks for each pet with due time, duration, priority, and frequency.
+4. The app stores the owner object in `st.session_state`, so pets and tasks remain available during the session.
+5. The app displays a sorted schedule table using `Scheduler.sort_by_time()`.
+6. If two tasks are scheduled at the same exact date and time, the app displays a warning from `Scheduler.detect_conflicts()`.
+7. The user can separately view high-priority open tasks using `Scheduler.filter_tasks()`.
+
+## Project Files
+
+```text
+pawpal_system.py          # backend OOP classes and scheduler logic
+main.py                   # CLI demo script
+tests/test_pawpal.py      # pytest suite
+app.py                    # Streamlit UI connected to backend classes
+diagrams/uml_final.mmd    # final Mermaid UML source
+reflection.md             # design and AI collaboration reflection
+requirements.txt          # dependencies
+```
